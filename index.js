@@ -41,12 +41,14 @@ udpPort.on("message", function (oscMessage) {
     console.log(oscMessage);
 
     let payload = {
-        "mediaDomain": 0,
-        "cueNumber": 1,
-        "cueAction": 0,
+        "mediaDomain": oscMessage.args[0],
+        "cueNumber": oscMessage.args[1],
+        "cueAction": oscMessage.args[2],
         "targetTags": ["all"]
     };
 
+    console.log(payload)
+    
     request.post({
         url: 'https://cohort.rocks/api/v1/events/6/broadcast',
         headers: [{
