@@ -21,14 +21,17 @@ Right now, the Cohort server URL and Cohort event are hardcoded inside index.js.
 - so to cause sound cue 5 to start playing on remote devices, your message would be `/cohort 0 5 0`
 
 ### QLab
+
+#### Create a Network Patch
 - open or create a Workspace in QLab
-- open Wokplace Settings (gear icon) > Network
+- open Workplace Settings (gear icon) > Network
 - in the first empty Patch row, enter Host and Port values under 'Destination':
 
-|          | Name          | Type    | Network   | Destination |          | Passcode |
-| ---------|---------------|---------|-----------|-------------|----------|--------- |
-| Patch 1: | Cohort Server | address | automatic | [ Host ]    | [ Port ] |          |
+|          | Name          | Type      | Network     | Destination |          | Passcode |
+| ---------|---------------|-----------|-------------|-------------|----------|--------- |
+| Patch 1: | Cohort Server | _address_ | _automatic_ | [ Host ]    | [ Port ] |          |
 
+#### Create a Network Cue
 - click Done to save your changes and return to the Workspace
 - create a new Network Cue (it's the bullseye / target / roundel icon)
 - open the Settings tab for your new cue
@@ -47,5 +50,5 @@ Right now, the Cohort server URL and Cohort event are hardcoded inside index.js.
   Broadcast to 6 connected clients
   ```
 
-  ## Caveats
-  - Cohort does not provide any information back to QLab, so you can't monitor Cohort cues within QLab (i.e., you won't see them in the Active Cues list). You may want to keep one device next to your QLab machine, so you can monitor cues on remote devices after triggering them.
+## Caveats
+- Cohort does not provide any information back to QLab, so you can't monitor Cohort cues within QLab (i.e., you won't see them in the Active Cues list). You may want to keep one device next to your QLab machine, so you can monitor cues on remote devices after triggering them.
