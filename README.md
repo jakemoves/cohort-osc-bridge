@@ -25,8 +25,8 @@ Right now, the Cohort server URL and Cohort event are hardcoded inside index.js.
 - open Wokplace Settings (gear icon) > Network
 - in the first empty Patch row, enter Host and Port values under 'Destination':
 
-|     -    | Name          | Type    | Network   | Destination |    -     | Passcode |
-| -----------------------------------------------------------------------------------|
+|          | Name          | Type    | Network   | Destination |          | Passcode |
+| ---------|---------------|---------|-----------|-------------|----------|--------- |
 | Patch 1: | Cohort Server | address | automatic | [ Host ]    | [ Port ] |          |
 
 - click Done to save your changes and return to the Workspace
