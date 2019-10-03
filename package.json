@@ -1,27 +1,22 @@
 {
-    "name": "osc.js-examples-node",
+    "name": "cohort-osc-bridge",
     "main": "index.js",
-    "version": "0.1.1",
-    "description": "Example of how to use osc.js in Node.js.",
-    "author": "Colin Clark",
-    "homepage": "http://flockingjs.org/",
+    "version": "0.1.0",
+    "description": "Bridges local OSC messages to a Cohort server",
+    "author": "Jacob Niedzwiecki",
+    "homepage": "https://cohort.rocks",
     "repository": {
         "type": "git",
-        "url": "git://github.com/colinbdclark/osc.js-examples.git"
+        "url": "git://github.com/jakemoves/cohort-osc-bridge"
     },
     "readmeFilename": "README.md",
-    "bugs": "https://github.com/colinbdclark/osc.js/issues",
-    "license": "(MIT OR GPL-2.0)",
-    "keywords": [
-        "Open Sound Control",
-        "OSC",
-        "sound",
-        "audio",
-        "music",
-        "Flocking"
-    ],
+    "bugs": "https://github.com/jakemoves/cohort-osc-bridge/issues",
+    "license": "MIT",
     "dependencies": {
         "osc": "2.3.0",
         "request": "^2.88.0"
+    },
+    "engines": {
+        "node": "8.12.0"
     }
 }
