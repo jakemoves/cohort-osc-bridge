@@ -1,4 +1,4 @@
-### Cohort OSC Bridge
+# Cohort OSC Bridge
 QLab can send [OSC messages](https://figure53.com/docs/qlab/v3/control/osc-cues/). This small node.js app listens for those messages and sends them to a Cohort server, so they can trigger cues or actions on smart devices.
 
 ## Getting started
@@ -11,7 +11,7 @@ Right now, the Cohort server URL and Cohort event are hardcoded inside index.js.
 
 ### Start the bridge app
 - `node index.js`
-- note the IP address (Host) and port listed (i.e., "Host: 192.168.2.119, Port: 57121")
+- note the IP address (Host) and port listed (i.e., "`Host: 192.168.2.119, Port: 57121`")
 
 ### Compose your Cohort cue message
 - this takes the format `/cohort X Y Z`, where:
@@ -26,13 +26,14 @@ Right now, the Cohort server URL and Cohort event are hardcoded inside index.js.
 - in the first empty Patch row, enter Host and Port values under 'Destination':
 
 |          | Name          | Type    | Network   | Destination |          | Passcode |
--------------------------------------------------------------------------------------
+| -----------------------------------------------------------------------------------|
 | Patch 1: | Cohort Server | address | automatic | [ Host ]    | [ Port ] |          |
 
 - click Done to save your changes and return to the Workspace
-- create a new Network Cue (bullseye icon)
-- open the Settings tab
-- select the patch you created and make sure the Type is set to 'OSC message'
+- create a new Network Cue (it's the bullseye / target / roundel icon)
+- open the Settings tab for your new cue
+- select the Patch you created
+- make sure the Type is set to 'OSC message'
 - in the message textbox, enter your Cohort cue message (i.e., '/cohort 0 5 0')
 - try firing the cue in QLab
   - your cohort-osc-bridge terminal window should show the interpretation of your cue message, and a results message from the Cohort server:
@@ -42,4 +43,9 @@ Right now, the Cohort server URL and Cohort event are hardcoded inside index.js.
     cueNumber: 1,
     cueAction: 0,
     targetTags: [ 'all' ] }
+  200
+  Broadcast to 6 connected clients
   ```
+
+  ## Caveats
+  - Cohort does not provide any information back to QLab, so you can't monitor Cohort cues within QLab (i.e., you won't see them in the Active Cues list). You may want to keep one device next to your QLab machine, so you can monitor cues on remote devices after triggering them.
