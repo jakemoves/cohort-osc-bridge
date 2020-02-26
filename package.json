@@ -1,7 +1,7 @@
 {
     "name": "cohort-osc-bridge",
     "main": "index.js",
-    "version": "0.1.0",
+    "version": "0.2.0",
     "description": "Bridges local OSC messages to a Cohort server",
     "author": "Jacob Niedzwiecki",
     "homepage": "https://cohort.rocks",
@@ -14,10 +14,9 @@
     "license": "MIT",
     "dependencies": {
         "node-fetch": "^2.6.0",
-        "osc": "2.3.0",
-        "request": "^2.88.0"
+        "osc": "2.3.0"
     },
     "engines": {
-        "node": "8.12.0"
+        "node": "8.16.0"
     }
 }
