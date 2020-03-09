@@ -5,6 +5,7 @@
 const osc = require('osc')
 const fetch = require('node-fetch')
 const inquirer = require('inquirer')
+const chalk = require('chalk')
 
 /****************
  * OSC Over UDP *
@@ -47,7 +48,6 @@ udpPort.on("ready", async () => {
         const credentials = await promptUsernameAndPassword()
         apiToken = await authenticate(credentials.username, credentials.password)
         occasionId = await promptOccasionId()
-        finishLaunch()
       } 
       catch (error){
         console.log(error)
@@ -60,25 +60,18 @@ udpPort.on("ready", async () => {
 
       try {
         const headers = getHeaders(apiToken)
-        const response = await fetch(serverURL + '/occasions/' + input + '/qrcode', { // TODO change this to a basic GET /occasions/id when that endpoint exists
+        const response = await fetch(serverURL, { // TODO change this to a basic GET /occasions/id when that endpoint exists
           method: 'GET',
-          headers: g
+          headers: headers
         })
-        
-        if(response.status == 200){
-          resolve(true)
-        } else {
-          const error = await response.text()
-          reject(error)
-        }
       }
       catch (error){
-        console.log(error)
+        console.log(chalk.redBright("\nCohort Server was not detected running on your system\nMake sure to start the 'cohort-server-offline' app"))
+        // console.log(error)
       }
-
-  
-      finishLaunch()
     }
+
+    finishLaunch()
   }
   catch (error) {
     if(error.isTtyError) {
