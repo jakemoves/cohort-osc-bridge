@@ -4,7 +4,9 @@ QLab can send [OSC messages](https://figure53.com/docs/qlab/v3/control/osc-cues/
 ## Getting started
 - download the [latest version of the app](https://cohort.rocks/binaries/cohort-osc-bridge-latest.zip)
 - on your QLab computer, unzip the cohort-osc-bridge app, move to your Applications folder, and run it
-- if you get an error or warning message you may need to [adjust your Mac's settings](https://www.imore.com/how-open-apps-anywhere-macos-catalina-and-mojave) to run the app
+- if you get an error or warning message:
+  - try right-clicking or (hold command and click) on the app, then clicking 'Open' in the menu that appears, then confirming
+  - if that doesn't work, you may need to [adjust your Mac's settings](https://www.imore.com/how-open-apps-anywhere-macos-catalina-and-mojave) to run the app
 
 Or, if you're a developer:
 - clone the repository
