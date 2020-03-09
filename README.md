@@ -1,24 +1,31 @@
 # Cohort OSC Bridge
-QLab can send [OSC messages](https://figure53.com/docs/qlab/v3/control/osc-cues/). This small node.js app listens for those messages and sends them to a Cohort server, so they can trigger cues or actions on smart devices.
+QLab can send [OSC messages](https://figure53.com/docs/qlab/v3/control/osc-cues/). This app listens for those messages and sends them to a Cohort server, so they can trigger cues on mobile devices.
 
 ## Getting started
+- download the [latest version of the app](https://cohort.rocks/binaries/cohort-osc-bridge-v0.3.0.zip)
+- on your QLab computer, unzip the cohort-osc-bridge app, move to your Applications folder, and run it
+- if you get an error or warning message you may need to [adjust your Mac's settings](https://www.imore.com/how-open-apps-anywhere-macos-catalina-and-mojave) to run the app
+
+Or, if you're a developer:
 - clone the repository
 - ensure your system is using node 8.12.0 or higher ([nvm](https://github.com/nvm-sh/nvm#installation-and-update) is a great way to switch between node versions)
 - `npm install`
-
-### Adjust URL manually
-Right now, the Cohort server URL and Cohort event are hardcoded inside index.js. This is lousy and will get fixed first. For now, edit the url variable on line 57 of index.js to reflect your server URL and event ID.
+- `node app.js`
 
 ### Start the bridge app
-- `node index.js`
-- note the IP address (Host) and port listed (i.e., "`Host: 192.168.2.119, Port: 57121`")
+- choose a server mode  
+  - **"Online"**: Your QLab computer and your mobile devices must be connected to the internet (over wifi or cellular data) to receive cues. This mode is the easiest to set up, but depends on that internet connection. For Online mode, you'll need to take a couple more steps if it's your first time:
+    - Register on the [Cohort Admin website](https://new.cohort.rocks/admin)
+    - Create a new event. An event is like a production, or a project.
+    - In that event, create a new occasion. An occasion is like a specific performance or rehearsal period.
+    - Note the occasion's ID number
+  - **"Offline"**: suitable for use in controlled environments like theatres, where your QLab computer and mobile devices are connected to a local network (wifi / WLAN) that may or may not be connected to the internet. You will need to run the [Cohort Server](https://github.com/jakemoves/cohort-server) app on the same computer where you're running this app. Offline mode offers the most control and lowest latency, but is more complicated to set up.
 
-### Compose your Cohort cue message
-- this takes the format `/cohort X Y Z`, where:
-  - X is the media domain: audio is 0, video is 1, text is 2
-  - Y is the cue number (on the client)
-  - Z is the cue action: play is 0, pause is 1, restart is 2, stop is 3
-- so to cause sound cue 5 to start playing on remote devices, your message would be `/cohort 0 5 0`
+- if you selected Online:
+  - enter your username and password from the Cohort Admin website
+  - enter the ID number for the occasion created
+
+- note the Host (IP address) and port listed (i.e., "`Host: 192.168.2.119, Port: 57121`")
 
 ### QLab
 
@@ -31,13 +38,45 @@ Right now, the Cohort server URL and Cohort event are hardcoded inside index.js.
 | ---------|---------------|-----------|-------------|-------------|----------|--------- |
 | Patch 1: | Cohort Server | _address_ | _automatic_ | [ Host ]    | [ Port ] |          |
 
-#### Create a Network Cue
 - click Done to save your changes and return to the Workspace
+
+
+#### Compose your Cohort cue message
+This takes the format:
+`/cohort [media domain] [cue number] [cue action] [grouping]`
+
+- the cue number is set in the Cohort Unity Client app
+- the grouping is optional:
+  - if not included, cue will be played by all devices
+  - if included, cue will only be played by this grouping
+
+| Media Domain | Value |
+|--------------|-------|
+| sound        | 0     |
+| video        | 1     |
+| image        | 2     |
+| text         | 3     |
+| vibration    | 5     |
+|                      |
+
+| Cue Action        | Value |
+|-------------------|-------|
+| play / show / on  | 0     |
+| pause             | 1     |
+| restart           | 2     |
+| stop / hide / off | 3     | 
+|                           |
+
+- So to cause sound cue 5 to start playing on all remote devices, your message would be `/cohort 0 5 0`
+- To stop that cue: `/cohort 0 5 3`
+- To cause devices in grouping 'audience1' to vibrate once: `/cohort 5 0 0 audience1`
+
+#### Create a Network Cue
 - create a new Network Cue (it's the bullseye / target / roundel icon)
 - open the Settings tab for your new cue
 - select the Patch you created
 - make sure the Type is set to 'OSC message'
-- in the message textbox, enter your Cohort cue message (i.e., '/cohort 0 5 0')
+- in the message textbox, enter your Cohort cue message (i.e., '/cohort 0 1 0')
 - try firing the cue in QLab
   - your cohort-osc-bridge terminal window should show the interpretation of your cue message, and a results message from the Cohort server:
   ```
