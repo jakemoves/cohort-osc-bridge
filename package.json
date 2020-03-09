@@ -1,7 +1,10 @@
 {
     "name": "cohort-osc-bridge",
-    "main": "index.js",
-    "version": "0.2.0",
+    "main": "app.js",
+    "bin": {
+        "cohort-osc-bridge": "app.js"
+    },
+    "version": "0.2.1",
     "description": "Bridges local OSC messages to a Cohort server",
     "author": "Jacob Niedzwiecki",
     "homepage": "https://cohort.rocks",

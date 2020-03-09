@@ -2,7 +2,6 @@
 // Released under the MIT License (see /LICENSE)
 // Adapted & expanded from osc.js-examples (https://github.com/colinbdclark/osc.js-examples) by Colin Clark
 
-// const request = require('request')
 const osc = require('osc')
 const fetch = require('node-fetch')
 
@@ -10,8 +9,10 @@ const fetch = require('node-fetch')
  * OSC Over UDP *
  ****************/
 
-var serverURL = "https://new.cohort.rocks/api/v2"
-var token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6Imhhbm5haGtpcmJ5IiwiaWF0IjoxNTgyNTA4NDA2fQ.Zs6rW89Bg5FaFe6hHUM0di5PktddZp0xWzB_B32wE9g" // hannahkirby
+var serverURL = "https://new.cohort.rocks/api/v2" // online
+// var serverURL = "http://localhost:3000/api/v2" // offline
+var token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6Imhhbm5haGtpcmJ5IiwiaWF0IjoxNTgyNzQyNzkzfQ.zI3jvKWq_kEB23-B0Gwaen6KzlWhQ7jjvqzhK1STe0s" // hannahkirby, online
+
 
 var getIPAddresses = function () {
   var os = require("os"),
@@ -67,8 +68,8 @@ udpPort.on("message", function (oscMessage) {
   fetch(serverURL + '/occasions/1/broadcast', {
     method: 'POST', 
     headers: {
-      'Content-Type': 'application/json',
-      'Authorization': 'JWT ' + token
+      'Content-Type': 'application/json'
+      // , 'Authorization': 'JWT ' + token // online
     },
     body: JSON.stringify(payload)
   }).then( response => {
@@ -86,6 +87,8 @@ udpPort.on("message", function (oscMessage) {
   }).catch( error => {
     console.log(error)
   })
+
+  // changed to fetch for offline above // online
   // request.post({
   //     url: serverURL + '/occasions/1/broadcast',
   //     headers: [{
