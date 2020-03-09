@@ -2,7 +2,7 @@
 QLab can send [OSC messages](https://figure53.com/docs/qlab/v3/control/osc-cues/). This app listens for those messages and sends them to a Cohort server, so they can trigger cues on mobile devices.
 
 ## Getting started
-- download the [latest version of the app](https://cohort.rocks/binaries/cohort-osc-bridge-v0.3.0.zip)
+- download the [latest version of the app](https://cohort.rocks/binaries/cohort-osc-bridge-latest.zip)
 - on your QLab computer, unzip the cohort-osc-bridge app, move to your Applications folder, and run it
 - if you get an error or warning message you may need to [adjust your Mac's settings](https://www.imore.com/how-open-apps-anywhere-macos-catalina-and-mojave) to run the app
 
