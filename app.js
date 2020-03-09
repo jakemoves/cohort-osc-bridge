@@ -57,6 +57,7 @@ udpPort.on("ready", async () => {
     if(answer1.serverMode == "offline"){
       serverMode = "offline"
       serverURL = "http://localhost:3000/api/v2"
+      occasionId = 1
 
       try {
         const headers = getHeaders(apiToken)
