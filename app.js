@@ -11,6 +11,7 @@ const inquirer = require('inquirer')
  ****************/
 
 var serverURL, serverMode, apiToken
+var occasionId
 
 
 var getIPAddresses = function () {
@@ -62,11 +63,16 @@ udpPort.on("ready", async () => {
       console.log(`\n`)
       inquirer.prompt([{
         type: "input",
-        name: "userToken",
-        message: "Please paste your API token:",
+        name: "username",
+        message: "Username [register at https://new.cohort.rocks/admin if you don't have one]:",
+        default: ""
+      },{
+        type: "password",
+        name: "password",
+        message: "Password:",
         default: ""
       }]).then(answers => {
-        authenticate(answers.userToken)
+        authenticate(answers.username, answers.password)
         finishLaunch() // TODO make async
       }).catch(error => {
         console.log(error)
@@ -79,7 +85,6 @@ udpPort.on("ready", async () => {
       finishLaunch()
     }
 
-      
     function finishLaunch (){
       const ipAddresses = getIPAddresses();
 
@@ -103,6 +108,7 @@ udpPort.on("ready", async () => {
 });
 
 udpPort.on("message", function (oscMessage) {
+  console.log(`\n`)
   console.log(oscMessage);
 
   if(oscMessage.address != '/cohort'){
@@ -119,12 +125,14 @@ udpPort.on("message", function (oscMessage) {
   if(oscMessage.args.length == 4){
     payload.targetTags = [oscMessage.args[3]];
   }
+ 
+  const headers = getHeaders(apiToken)
 
   console.log("Sending cue: ")
   console.log(payload)
-  fetch(serverURL + '/occasions/1/broadcast', {
+  fetch(serverURL + '/occasions/' + occasionId + '/broadcast', {
     method: 'POST', 
-    headers: headers(apiToken),
+    headers: headers,
     body: JSON.stringify(payload)
   }).then( response => {
     console.log("Response code: " + response.status)
@@ -172,72 +180,59 @@ getHeaders = (token) => {
     'Content-Type': 'application/json'
   }
 
-  if(serverMode == "online"){
+  if(token !== undefined && serverMode == "online"){
     headers['Authorization'] = 'JWT ' + token
   }
   return headers
 }
 
-authenticate = (userToken) => {
-  const headers = getHeaders(userToken)
+authenticate = (username, password) => {
+  // get a token
+  const headers = getHeaders(apiToken)
+  const payload = { username: username, password: password }
 
-  fetch(serverURL + '/events', {
-    method: 'GET', 
+  fetch(serverURL + '/login?sendToken=true', {
+    method: 'POST', 
+    body: JSON.stringify(payload),
     headers: headers
   }).then( response => {
-    // console.log("Response code: " + response.status)
     if(response.status == 200){
       response.json().then( results => {
-        // console.log("Results: successful")
-        // console.log(results)
-        console.log("Logged in to Cohort server")
+        if(results.jwt !== undefined && results.jwt){
+          apiToken = results.jwt
+          console.log("Logged into Cohort server")
+          requestOccasion()
+        }
       })
     } else {
-      response.text().then( error => {
-        console.log(error)
-      })
+      // heckin error, gotta fail the promise and show the user something
+      console.log(response.status)
     }
-  }).catch( error => {
-    console.log(error)
   })
-  // inquirer.prompt([
-  //   {
-  //     type: "list",
-  //     name: "serverMode",
-  //     message: "Are you using Cohort in online or offline mode?",
-  //     choices: [{
-  //       name: "Online",
-  //       value: "online",
-  //       short: "online"
-  //     },{
-  //       name: "Offline",
-  //       value: "offline",
-  //       short: "offline"
-  //     }
-  //   ]}
-  // ]).then(answers => {
-  //   if(answers.serverMode == "online"){
-  //     serverUrL = "https://new.cohort.rocks/api/v2"
-  //     authenticate()
+}
 
-  //   } else if(answers.serverMode == "offline"){
-  //     serverURL = "http://localhost:3000/api/v2"
-  //   }
+requestOccasion = () => {
+  const headers = getHeaders(apiToken)
 
-  //   const ipAddresses = getIPAddresses();
+  inquirer.prompt([{
+    type: "input",
+    name: "occasionId",
+    message: `\nEnter an occasion ID to broadcast to: `
+  }]).then( answers => {
+    const userOccasionId = answers.occasionId
+    const occasionCheck = fetch(serverURL + '/occasions/' + userOccasionId + '/qrcode', { // TODO change this to a basic GET /occasions/id when that endpoint exists
+      method: 'GET',
+      headers: headers
+    }).then(response => {
+      if(response.status == 200){
+        occasionId = userOccasionId
+        console.log("Standing by to broadcast cues to occasion " + occasionId)
+      } else {
+        response.text().then( error => console.log(error))
+      }
+    })
 
-  //   console.log("Listening for OSC over UDP.");
-  //   ipAddresses.forEach(function (address) {
-  //     console.log(" Host:", address + ", Port:", udpPort.options.localPort);
-  //   });
+  }).catch(error=>console.log(error))
 
-  // }).catch(error => {
-  //   if(error.isTtyError) {
-  //     // Prompt couldn't be rendered in the current environment
-  //     console.log("Prompt couldn't be rendered in the current environment")
-  //   } else {
-  //     // Something else when wrong
-  //     console.log(error)
-  //   }
-  // })
+  
 }
