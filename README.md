@@ -21,7 +21,7 @@ Or, if you're a developer:
     - Create a new event. An event is like a production, or a project.
     - In that event, create a new occasion. An occasion is like a specific performance or rehearsal period.
     - Note the occasion's ID number
-  - **"Offline"**: suitable for use in controlled environments like theatres, where your QLab computer and mobile devices are connected to a local network (wifi / WLAN) that may or may not be connected to the internet. You will need to run the [Cohort Server](https://github.com/jakemoves/cohort-server) app on the same computer where you're running this app. Offline mode offers the most control and lowest latency, but is more complicated to set up.
+  - **"Offline"**: suitable for use in controlled environments like theatres, where your QLab computer and mobile devices are connected to a local network (wifi / WLAN) that may or may not be connected to the internet. You will need to run the [cohort-server-offline app](https://cohort.rocks/binaries/cohort-server-offline-latest.zip) on the same computer where you're running this app. Offline mode offers the most control and lowest latency, but is more complicated to set up.
 
 - if you selected Online:
   - enter your username and password from the Cohort Admin website
