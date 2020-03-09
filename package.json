@@ -16,6 +16,7 @@
     "bugs": "https://github.com/jakemoves/cohort-osc-bridge/issues",
     "license": "MIT",
     "dependencies": {
+        "inquirer": "^7.0.6",
         "node-fetch": "^2.6.0",
         "osc": "2.3.0"
     },
