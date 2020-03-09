@@ -4,9 +4,14 @@
     "bin": {
         "cohort-osc-bridge": "app.js"
     },
-    "version": "0.3",
+    "version": "0.3.0",
     "description": "Bridges local OSC messages to a Cohort server",
     "author": "Jacob Niedzwiecki",
+    "contributors": [
+        "Luke Garwood",
+        "Amanda Baker",
+        "Hannah Kirby"
+    ],
     "homepage": "https://cohort.rocks",
     "repository": {
         "type": "git",
