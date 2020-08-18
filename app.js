@@ -103,6 +103,10 @@ udpPort.on("message", function (oscMessage) {
   if(oscMessage.args.length == 4){
     payload.targetTags = [oscMessage.args[3]];
   }
+
+  if(oscMessage.args.length == 5){
+    payload.cueContent = oscMessage.args[4]
+  }
  
   const headers = getHeaders(apiToken)
 
