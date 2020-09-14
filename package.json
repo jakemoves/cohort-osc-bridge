@@ -22,9 +22,13 @@
     "license": "MIT",
     "dependencies": {
         "chalk": "^3.0.0",
+        "esm": "^3.2.25",
+        "events": "^3.2.0",
         "inquirer": "^7.0.6",
         "node-fetch": "^2.6.0",
-        "osc": "2.3.0"
+        "osc": "2.3.0",
+        "uuid": "^8.3.0",
+        "websocket": "^1.0.32"
     },
     "engines": {
         "node": "8.16.0"

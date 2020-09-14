@@ -7,12 +7,17 @@ const fetch = require('node-fetch')
 const inquirer = require('inquirer')
 const chalk = require('chalk')
 
+import CohortClientSession from './CHClientSession.js'
+
 /****************
  * OSC Over UDP *
  ****************/
 
-var serverURL, serverMode, apiToken
+var serverURL, apiToken, baseServerURL, socketsURL
+var serverEnvironment /* online or offline */
+var bridgeMode /* broadcast, receive, or both */
 var occasionId
+var cohortSession
 
 var udpPort = new osc.UDPPort({
   localAddress: "0.0.0.0",
@@ -22,57 +27,69 @@ var udpPort = new osc.UDPPort({
 udpPort.on("ready", async () => {
   console.log(`\n`)
 
-  // ask user to select server mode
+  // ask user to select broadcast, receive, or two-way 
   try {
-    let answer1 = await inquirer.prompt(
-      [{
-        type: "list",
-        name: "serverMode",
-        message: "Are you using Cohort in online or offline mode?",
-        choices: [{
-          name: "Online",
-          value: "online",
-          short: "online"
-        },{
-          name: "Offline",
-          value: "offline",
-          short: "offline"
-        } ]
+    let userInput = await inquirer.prompt([{
+      type: "list",
+      name: "bridgeMode",
+      message: "Would you like to broadcast, receive, or both?",
+      choices: [{
+        name: "Broadcast from OSC to Cohort",
+        value: "broadcast",
+        short: "broadcast"
+      },{
+        name: "Receive via OSC from Cohort",
+        value: "receive",
+        short: "receive"
+      },{
+        name: "Two-way connection between OSC and Cohort",
+        value: "two-way",
+        short: "two-way"
       }]
-    )
+    },{
+      type: "list",
+      name: "serverEnvironment",
+      message: "Are you using Cohort in online or offline mode?",
+      choices: [{
+        name: "Online",
+        value: "online",
+        short: "online"
+      },{
+        name: "Offline",
+        value: "offline",
+        short: "offline"
+      } ]
+    }])
 
-    if(answer1.serverMode == "online"){
-      serverMode = "online"
-      serverURL = "https://new.cohort.rocks/api/v2"
-      try {
-        const credentials = await promptUsernameAndPassword()
-        apiToken = await authenticate(credentials.username, credentials.password)
-        occasionId = await promptOccasionId()
-      } 
-      catch (error){
-        console.log(error)
-      }
-    } 
-    
-    if(answer1.serverMode == "offline"){
-      serverMode = "offline"
-      serverURL = "http://localhost:3000/api/v2"
-      occasionId = 1
-
-      try {
-        const headers = getHeaders(apiToken)
-        const response = await fetch(serverURL, { // TODO change this to a basic GET /occasions/id when that endpoint exists
-          method: 'GET',
-          headers: headers
-        })
-      }
-      catch (error){
-        console.log(chalk.redBright("\nCohort Server was not detected running on your system\nMake sure to start the 'cohort-server-offline' app"))
-        // console.log(error)
-      }
+    switch(userInput.bridgeMode){
+      case "broadcast": 
+        bridgeMode = "broadcast"
+        break
+      case "receive":
+        bridgeMode = "receive"
+        break
+      case "two-way":
+        bridgeMode = "two-way"
+        break
     }
 
-    finishLaunch()
+    switch(userInput.serverEnvironment){
+      case "online":
+        serverEnvironment = "online"
+        break
+      case "offline":
+        serverEnvironment = "offline"
+    }
+
+    let connected = await verifyCohortServer()
+
+    if(bridgeMode == 'broadcast' || bridgeMode == 'two-way'){
+      startCohortSession()
+    }
+    
+    if(connected){
+      finishLaunch()
+    }
   }
   catch (error) {
     if(error.isTtyError) {
@@ -86,51 +103,53 @@ udpPort.on("ready", async () => {
 })
 
 udpPort.on("message", function (oscMessage) {
-  console.log(`\n`)
-  console.log(oscMessage);
+  if(bridgeMode == 'broadcast' || bridgeMode == 'two-way'){
+    console.log(`\n`)
+    console.log(oscMessage);
 
-  if(oscMessage.address != '/cohort'){
-    return;
-  }
-
-  let payload = {
-    "mediaDomain": oscMessage.args[0],
-    "cueNumber": oscMessage.args[1],
-    "cueAction": oscMessage.args[2],
-    "targetTags": ["all"]
-  };
-
-  if(oscMessage.args.length == 4){
-    payload.targetTags = [oscMessage.args[3]];
-  }
-
-  if(oscMessage.args.length == 5){
-    payload.cueContent = oscMessage.args[4]
-  }
- 
-  const headers = getHeaders(apiToken)
-
-  console.log("Sending cue: ")
-  console.log(payload)
-  fetch(serverURL + '/occasions/' + occasionId + '/broadcast', {
-    method: 'POST', 
-    headers: headers,
-    body: JSON.stringify(payload)
-  }).then( response => {
-    console.log("Response code: " + response.status)
-    if(response.status == 200){
-      response.json().then( results => {
-        console.log("Results: successful")
-        // console.log(results)
-      })
-    } else {
-      response.text().then( error => {
-        console.log(error)
-      })
+    if(oscMessage.address != '/cohort'){
+      return;
     }
-  }).catch( error => {
-    console.log(error)
-  })
+
+    let payload = {
+      "mediaDomain": oscMessage.args[0],
+      "cueNumber": oscMessage.args[1],
+      "cueAction": oscMessage.args[2],
+      "targetTags": ["all"]
+    };
+
+    if(oscMessage.args.length == 4){
+      payload.targetTags = [oscMessage.args[3]];
+    }
+
+    if(oscMessage.args.length == 5){
+      payload.cueContent = oscMessage.args[4]
+    }
+  
+    const headers = getHeaders(apiToken)
+
+    console.log("Sending cue: ")
+    console.log(payload)
+    fetch(serverURL + '/occasions/' + occasionId + '/broadcast', {
+      method: 'POST', 
+      headers: headers,
+      body: JSON.stringify(payload)
+    }).then( response => {
+      console.log("Response code: " + response.status)
+      if(response.status == 200){
+        response.json().then( results => {
+          console.log("Results: successful")
+          // console.log(results)
+        })
+      } else {
+        response.text().then( error => {
+          console.log(error)
+        })
+      }
+    }).catch( error => {
+      console.log(error)
+    })
+  }
 })
 
 udpPort.on("error", function (err) {
@@ -139,11 +158,49 @@ udpPort.on("error", function (err) {
 
 udpPort.open()
 
+const verifyCohortServer = async function(){ // returns true on success, or error
+  if(serverEnvironment == "online"){
+    baseServerURL = "cohort.rocks"
+    serverURL = "https://" + baseServerURL + "/api/v2"
+    socketsURL = "wss://" + baseServerURL + "/sockets"
 
-function promptUsernameAndPassword(){
+    try {
+      const credentials = await promptUsernameAndPassword()
+      apiToken = await authenticate(credentials.username, credentials.password) // TODO handle incorrect password / username
+      occasionId = await promptOccasionId()
+      return true // doesn't catch errors from the above three calls, problem!
+    } 
+    catch (error){
+      console.log(error)
+      return error
+    }
+  } else if(serverEnvironment == "offline"){
+    serverEnvironment = "offline"
+    baseServerURL = "localhost:3000"
+    serverURL = "http://" + baseServerURL + "/api/v2"
+    socketsURL = "ws://" + baseServerURL + "/sockets"
+    occasionId = 1
+
+    try {
+      const headers = getHeaders(apiToken)
+      const response = await fetch(serverURL, { // TODO change this to a basic GET /occasions/id when that endpoint exists
+        method: 'GET',
+        headers: headers
+      })
+      return true
+    }
+    catch (error){
+      console.log(chalk.redBright("\nCohort Server was not detected running on your system\nMake sure to start the 'cohort-server-offline' app"))
+      return error
+      // console.log(error)
+    }
+  }
+}
+
+const promptUsernameAndPassword = function(){
   return new Promise( (resolve, reject) => {
     console.log(`\n Enter your username and password`)
-    console.log("[register at https://new.cohort.rocks/admin if you don't have one]\n")
+    console.log("[register at https://cohort.rocks/admin if you don't have one]\n")
     inquirer.prompt([{
       type: "input",
       name: "username",
@@ -182,7 +239,7 @@ function promptUsernameAndPassword(){
 }
 
 // returns an API token or an error
-authenticate = (username, password) => {
+const authenticate = (username, password) => {
   return new Promise( (resolve, reject) => {
     // get a token
     const headers = getHeaders(apiToken)
@@ -203,7 +260,7 @@ authenticate = (username, password) => {
       } else {
         // heckin error, gotta fail the promise and show the user something
         console.log(response.status)
-        reject(error)
+        reject()
       }
     })
   })
@@ -237,7 +294,12 @@ function promptOccasionId(){
         })
       }
     }]).then( answers => {
-      console.log("\nStanding by to broadcast cues to occasion " + answers.occasionId)
+      if(bridgeMode == 'broadcast' || bridgeMode == 'two-way'){
+        console.log("\nStanding by to broadcast cues to occasion " + answers.occasionId)
+      }
+      if(bridgeMode == 'receive' || bridgeMode == 'two-way'){
+        console.log("\nListening for Cohort cues")
+      }
       resolve(answers.occasionId)
     }).catch( error => {
       reject(error)
@@ -245,7 +307,26 @@ function promptOccasionId(){
   })
 }
 
-function finishLaunch (){
+const startCohortSession = function(){
+  cohortSession = new CohortClientSession(socketsURL, occasionId)
+
+  cohortSession.on('connected', () => {
+    console.log("connected to cohort server")
+  })
+
+  cohortSession.on('disconnected', () => {
+    console.log('disconnected from cohort server')
+  })
+
+  cohortSession.on('cueReceived', (cue) => {
+		console.log('cue received:')
+    console.log(cue)
+  })
+
+  cohortSession.init().then().catch(error => console.log(error))
+}
+
+const finishLaunch = function(){
   const ipAddresses = getIPAddresses();
 
   console.log(`\nListening for OSC over UDP on IP addresses:`);
@@ -273,12 +354,12 @@ function finishLaunch (){
   }
 }
 
-getHeaders = (token) => {
+const getHeaders = (token) => {
   let headers = {
     'Content-Type': 'application/json'
   }
 
-  if(token !== undefined && serverMode == "online"){
+  if(token !== undefined && serverEnvironment == "online"){
     headers['Authorization'] = 'JWT ' + token
   }
   return headers
