@@ -4,7 +4,7 @@
     "bin": {
         "cohort-osc-bridge": "app.js"
     },
-    "version": "0.3.1",
+    "version": "0.4.0",
     "description": "Bridges local OSC messages to a Cohort server",
     "author": "Jacob Niedzwiecki",
     "contributors": [
@@ -28,7 +28,7 @@
         "node-fetch": "^2.6.0",
         "osc": "2.3.0",
         "uuid": "^8.3.0",
-        "websocket": "^1.0.32"
+        "ws": "^7.3.1"
     },
     "engines": {
         "node": "8.16.0"

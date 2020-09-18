@@ -1,6 +1,6 @@
 import {v4 as uuid} from 'uuid'
 import EventEmitter from 'events'
-const WebSocket = require('websocket').client
+const WebSocket = require('ws')
 
 class CohortClientSession extends EventEmitter {
 
@@ -16,7 +16,6 @@ class CohortClientSession extends EventEmitter {
 
   init(){
     return new Promise( async (resolve, reject) => {
-      console.log("init")
       if(!this.tags.includes("all")){
         console.log("Adding default tag 'all' to Cohort session")
         this.tags.push("all")
@@ -34,18 +33,16 @@ class CohortClientSession extends EventEmitter {
   }
 
   connect(){
-    console.log("connect")
     return new Promise( (resolve, reject) => {
       let socket 
       try {
-        socket = new WebSocket()
-        socket.connect(this.socketURL)
+        socket = new WebSocket(this.socketURL)
       } catch (error) {
+        console.log(error)
         return reject(error)
       }
 
       socket.on('open', () => {
-        console.log('open')
         socket.send(JSON.stringify({ 
           guid: "" + this.guid, 
           occasionId: this.occasionId
@@ -64,8 +61,8 @@ class CohortClientSession extends EventEmitter {
       })
 
       socket.on('message', (message) => {
-        console.log()
-        const msg = JSON.parse(message.data)
+        // console.log(message)
+        const msg = JSON.parse(message)
         // console.log(msg)
         
         // finish handshake
@@ -75,11 +72,6 @@ class CohortClientSession extends EventEmitter {
           return resolve(socket)
         } else if(this.connected == false){
           return reject(msg)
-        }
-        
-        if(msg.dataIdentifier !== undefined){
-          this.emit('dataReceived', msg)
-          return
         }
 
         let cohortCue
@@ -102,14 +94,6 @@ class CohortClientSession extends EventEmitter {
 
     if(msg.cueNumber == null || msg.cueNumber === undefined){
       throw new Error("message does not include 'cueNumber' field")
-    }
-    
-    if(msg.mediaDomain !== 0 && msg.mediaDomain !== 3){
-      throw new Error("Cohort for web browsers only supports audio cues (mediaDomain: 0) and text cues (mediaDomain: 3)")
-    }
-
-    if(msg.cueAction != 0 && msg.cueAction != 3){
-      throw new Error("Cohort for web browsers only supports playing and stopping (no pause, restart) -- cueAction: 0")
     }
 
     let tagMatched = false

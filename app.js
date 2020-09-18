@@ -7,17 +7,26 @@ const fetch = require('node-fetch')
 const inquirer = require('inquirer')
 const chalk = require('chalk')
 
-import CohortClientSession from './CHClientSession.js'
+const { v4: uuid } = require('uuid')
+const EventEmitter = require('events')
+const WebSocket = require('ws')
 
 /****************
  * OSC Over UDP *
  ****************/
 
-var serverURL, apiToken, baseServerURL, socketsURL
+var baseServerURL = 'staging.cohort.rocks'
+var serverURL, apiToken, socketsURL
 var serverEnvironment /* online or offline */
 var bridgeMode /* broadcast, receive, or both */
 var occasionId
 var cohortSession
+
+var outputPatch = {
+  oscAddress: null,
+  ipAddress: null,
+  port: null
+}
 
 var udpPort = new osc.UDPPort({
   localAddress: "0.0.0.0",
@@ -83,7 +92,68 @@ udpPort.on("ready", async () => {
 
     let connected = await verifyCohortServer()
 
-    if(bridgeMode == 'broadcast' || bridgeMode == 'two-way'){
+    if(bridgeMode == 'receive' || bridgeMode == 'two-way'){
+      let outputPatchDetails = await inquirer.prompt([
+      {
+        type: "list",
+        name: "appOscAddress",
+        message: "Where do you want to send Cohort cues to over OSC?",
+        choices:[/*{
+          name: "QLab",
+          value: "qlab",
+          short: "qlab"
+        },{
+          name: "Isadora",
+          value: "isadora",
+          short: "isadora"
+        },*/{
+          name: "ETC Eos Console",
+          value: "etcEosConsole",
+          short: "etcEosConsole"
+        }]
+      },{
+        type: "input",
+        name: "outputIP",
+        message: "What's the IP address for that destination?",
+        validate(input){
+          return new Promise( (resolve, reject) => {
+            if(input.match(ipAddressRegex)){
+              resolve(true)
+            } else {
+              resolve("Error: invalid IP address")
+            }
+          })
+        }
+      },{
+        type: "number",
+        name: "outputPort",
+        message: "What's the port for that destination?",
+        validate(input){
+          return new Promise( (resolve, reject) => {
+            if(!input.isNan){
+              resolve(true)
+            } else {
+              resolve("Error: invalid port number")
+            }
+          })
+        }
+      }])
+      switch(outputPatchDetails.appOscAddress){
+        case 'qlab':
+          // qlab doesn't use an app-specific address
+          break
+        case 'isadora':
+          // isadora's OSC address is /isadora, but the address also contains a variable channel number that corresponds to the channel number in the Actor...
+          break
+        case 'etcEosConsole':
+          outputPatch.oscAddress = '/eos'
+          break
+      }
+      outputPatch.ipAddress = outputPatchDetails.outputIP
+      outputPatch.port = parseInt(outputPatchDetails.outputPort)
+
+      console.log(outputPatch)
+
       startCohortSession()
     }
     
@@ -158,9 +228,22 @@ udpPort.on("error", function (err) {
 
 udpPort.open()
 
+const sendOSCMessage = function(address, message){
+  try {
+    udpPort.send({
+      address: address,
+      args: [{
+        type: 's',
+        value: message
+      }]
+    }, outputPatch.ipAddress, outputPatch.port)
+  } catch(error){
+    console.log(error)
+  }
+}
+
 const verifyCohortServer = async function(){ // returns true on success, or error
   if(serverEnvironment == "online"){
-    baseServerURL = "cohort.rocks"
     serverURL = "https://" + baseServerURL + "/api/v2"
     socketsURL = "wss://" + baseServerURL + "/sockets"
 
@@ -200,7 +283,7 @@ const verifyCohortServer = async function(){ // returns true on success, or erro
 const promptUsernameAndPassword = function(){
   return new Promise( (resolve, reject) => {
     console.log(`\n Enter your username and password`)
-    console.log("[register at https://cohort.rocks/admin if you don't have one]\n")
+    console.log("[register at http://" + baseServerURL + "/admin if you don't have one]\n")
     inquirer.prompt([{
       type: "input",
       name: "username",
@@ -321,6 +404,14 @@ const startCohortSession = function(){
   cohortSession.on('cueReceived', (cue) => {
 		console.log('cue received:')
     console.log(cue)
+    if(cue.mediaDomain == 4){
+      console.log('lx cue')
+      if(cue.cueContent === undefined){
+        sendOSCMessage(outputPatch.oscAddress + '/cue/fire', cue.cueNumber)
+      } else {
+        sendOSCMessage(outputPatch.oscAddress + '/cmd', cue.cueContent)
+      }
+    }
   })
 
   cohortSession.init().then().catch(error => console.log(error))
@@ -363,4 +454,120 @@ const getHeaders = (token) => {
     headers['Authorization'] = 'JWT ' + token
   }
   return headers
+}
+
+const ipAddressRegex = /^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)|localhost)$/g
+
+
+class CohortClientSession extends EventEmitter {
+
+  constructor(socketURL, occasionId, tags = [ "all" ], playerLabel = ""){
+    super()
+    this.socketURL = socketURL
+    this.occasionId = occasionId
+    this.guid = playerLabel + uuid() 
+    this.tags = tags
+    this.connected = false
+    this.socket
+  }
+
+  init(){
+    return new Promise( async (resolve, reject) => {
+      if(!this.tags.includes("all")){
+        console.log("Adding default tag 'all' to Cohort session")
+        this.tags.push("all")
+      }
+
+      try {
+        this.socket = await this.connect()
+      }
+      catch( error ) {
+        return reject(error) 
+      }
+
+      return resolve()
+    })
+  }
+
+  connect(){
+    return new Promise( (resolve, reject) => {
+      let socket 
+      try {
+        socket = new WebSocket(this.socketURL)
+      } catch (error) {
+        console.log(error)
+        return reject(error)
+      }
+
+      socket.on('open', () => {
+        socket.send(JSON.stringify({ 
+          guid: "" + this.guid, 
+          occasionId: this.occasionId
+        }))
+      })
+
+      socket.on('close', (msg) => {
+        console.log('connection closed with error ' + msg.code + ': ' + msg.reason)
+        this.connected = false
+        this.emit('disconnected', { code: msg.code, reason: msg.reason })
+      })
+      
+      socket.on('error', (err) => {
+        err.stopImmediatePropagation()
+        console.log(err)
+      })
+
+      socket.on('message', (message) => {
+        // console.log(message)
+        const msg = JSON.parse(message)
+        // console.log(msg)
+        
+        // finish handshake
+        if(this.connected == false && msg.response == "success"){
+          this.connected = true
+          this.emit('connected')
+          return resolve(socket)
+        } else if(this.connected == false){
+          return reject(msg)
+        }
+
+        let cohortCue
+        try {
+          cohortCue = this.validateCohortCue(msg)
+        } catch (error) {
+          console.log(error)
+          return
+        }
+
+        this.emit('cueReceived', cohortCue)
+      })
+    })
+  }
+
+  validateCohortCue(msg) {
+    if(msg.mediaDomain == null || msg.mediaDomain === undefined){
+      throw new Error("message does not include 'mediaDomain' field")
+    }
+
+    if(msg.cueNumber == null || msg.cueNumber === undefined){
+      throw new Error("message does not include 'cueNumber' field")
+    }
+
+    let tagMatched = false
+    msg.targetTags.forEach( tag => {
+      if( this.tags.includes(tag)){
+        tagMatched = true
+        return
+      }
+    })
+    if(!tagMatched){
+      throw new Error("Based on tags, this cue is not intended for this client, so we're not triggering it.")
+    }
+
+    return msg
+  }
+
+  send(object){
+    this.socket.send(JSON.stringify(object))
+  }
 }
