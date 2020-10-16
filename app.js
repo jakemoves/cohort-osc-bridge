@@ -15,12 +15,13 @@ const WebSocket = require('ws')
  * OSC Over UDP *
  ****************/
 
-var baseServerURL = 'otm.cohort.rocks'
+var baseServerURL = 'cohort.rocks'
 var serverURL, apiToken, socketsURL
 var serverEnvironment /* online or offline */
 var bridgeMode /* broadcast, receive, or both */
 var occasionId
 var cohortSession
+var inputPort = 57121
 
 var outputPatch = {
   oscAddress: null,
@@ -30,7 +31,7 @@ var outputPatch = {
 
 var udpPort = new osc.UDPPort({
   localAddress: "0.0.0.0",
-  localPort: 57121
+  localPort: inputPort
 });
 
 udpPort.on("ready", async () => {
@@ -299,7 +300,7 @@ const verifyCohortServer = async function(){ // returns true on success, or erro
 const promptUsernameAndPassword = function(){
   return new Promise( (resolve, reject) => {
     console.log(`\n Enter your username and password`)
-    console.log("[register at http://" + baseServerURL + "/admin if you don't have one]\n")
+    console.log("[register at https://" + baseServerURL + "/admin if you don't have one]\n")
     inquirer.prompt([{
       type: "input",
       name: "username",
@@ -439,7 +440,7 @@ const finishLaunch = function(){
   console.log(`\nListening for OSC over UDP on IP addresses:`);
   validInterfaces.forEach(function (interface) {
     // console.log("  Host (IP):", address + ", Port:", udpPort.options.localPort);
-    console.log("Network: " + interface.deviceName + "; IP address: " + interface.ip)
+    console.log("Network: " + interface.deviceName + "; IP address: " + interface.ip + "; port: " + inputPort)
   });
 
   console.log(`\nTo quit, hit Control+C`)
