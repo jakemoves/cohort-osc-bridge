@@ -5,7 +5,7 @@
         "cohort-osc-bridge": "app.js"
     },
     "version": "0.4.0",
-    "description": "Bridges local OSC messages to a Cohort server",
+    "description": "Bridges between Cohort and OSC",
     "author": "Jacob Niedzwiecki",
     "contributors": [
         "Luke Garwood",

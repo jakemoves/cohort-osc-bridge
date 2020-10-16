@@ -368,10 +368,25 @@ const authenticate = (username, password) => {
 
 function promptOccasionId(){
   return new Promise( (resolve, reject) => {
+    let directionLabel
+    switch(bridgeMode){
+      case 'broadcast':
+        directionLabel = "broadcast to"
+        break;
+      case 'receive':
+        directionLabel = "receive from"
+        break;
+      case 'two-way':
+        directionLabel = "broadcast to and receive from"
+        break;
+      default:
+        directionLabel = "connect to"
+    }
+
     inquirer.prompt([{
       type: "input",
       name: "occasionId",
-      message: `\nEnter an occasion ID to broadcast to: `,
+      message: `\nEnter an occasion ID to ${directionLabel}: `,
       validate(input){
         return new Promise( async (resolve, reject) => {
           if(input == ""){
