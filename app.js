@@ -15,7 +15,7 @@ const WebSocket = require('ws')
  * OSC Over UDP *
  ****************/
 
-var baseServerURL = 'staging.cohort.rocks'
+var baseServerURL = 'otm.cohort.rocks'
 var serverURL, apiToken, socketsURL
 var serverEnvironment /* online or offline */
 var bridgeMode /* broadcast, receive, or both */
@@ -147,10 +147,12 @@ udpPort.on("ready", async () => {
           break
         case 'etcEosConsole':
           outputPatch.oscAddress = '/eos'
+          outputPatch.ipAddress = outputPatchDetails.outputIP
+          outputPatch.port = parseInt(outputPatchDetails.outputPort)
+          let test = await verifyLocalEosConsole()
+          console.log(test)
           break
       }
-      outputPatch.ipAddress = outputPatchDetails.outputIP
-      outputPatch.port = parseInt(outputPatchDetails.outputPort)
 
       console.log(outputPatch)
 
@@ -172,10 +174,21 @@ udpPort.on("ready", async () => {
   }
 })
 
+const verifyLocalEosConsole = function(){
+  return new Promise( (resolve, reject) => {
+    let testResult = sendOSCMessage("/ping", "check")
+    if(testResult == null){resolve()} else { reject(testResult) }
+  })
+}
+
 udpPort.on("message", function (oscMessage) {
   if(bridgeMode == 'broadcast' || bridgeMode == 'two-way'){
     console.log(`\n`)
     console.log(oscMessage);
+
+    if(oscMessage.address == '/eos/out/ping'){
+      console.log('eos console ping successful')
+    }
 
     if(oscMessage.address != '/cohort'){
       return;
@@ -229,6 +242,7 @@ udpPort.on("error", function (err) {
 udpPort.open()
 
 const sendOSCMessage = function(address, message){
+  let result = null
   try {
     udpPort.send({
       address: address,
@@ -239,7 +253,9 @@ const sendOSCMessage = function(address, message){
     }, outputPatch.ipAddress, outputPatch.port)
   } catch(error){
     console.log(error)
+    result = error
   }
+  return result
 }
 
 const verifyCohortServer = async function(){ // returns true on success, or error
@@ -418,32 +434,37 @@ const startCohortSession = function(){
 }
 
 const finishLaunch = function(){
-  const ipAddresses = getIPAddresses();
+  const validInterfaces = getNetworkInterfaces();
 
   console.log(`\nListening for OSC over UDP on IP addresses:`);
-  ipAddresses.forEach(function (address) {
-    console.log("  Host (IP):", address + ", Port:", udpPort.options.localPort);
+  validInterfaces.forEach(function (interface) {
+    // console.log("  Host (IP):", address + ", Port:", udpPort.options.localPort);
+    console.log("Network: " + interface.deviceName + "; IP address: " + interface.ip)
   });
 
   console.log(`\nTo quit, hit Control+C`)
 
-  function getIPAddresses(){
-    var os = require("os"),
-      interfaces = os.networkInterfaces(),
-      ipAddresses = []
+  
+}
 
-    for (var deviceName in interfaces) {
-      var addresses = interfaces[deviceName]
-      for (var i = 0; i < addresses.length; i++) {
-        var addressInfo = addresses[i]
-        if (addressInfo.family === "IPv4" && !addressInfo.internal) {
-          ipAddresses.push(addressInfo.address)
-        }
+const getNetworkInterfaces = function(){
+  var os = require("os"),
+    interfaces = os.networkInterfaces(),
+    validInterfaces = []
+
+  for (var deviceName in interfaces) {
+    var addresses = interfaces[deviceName]
+    for (var i = 0; i < addresses.length; i++) {
+      var addressInfo = addresses[i]
+      if (addressInfo.family === "IPv4" && !addressInfo.internal) {
+        validInterfaces.push({deviceName: deviceName, ip: addressInfo.address})
       }
     }
-    return ipAddresses
   }
+  return validInterfaces
 }
+
+
 
 const getHeaders = (token) => {
   let headers = {
