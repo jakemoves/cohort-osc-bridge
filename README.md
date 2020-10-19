@@ -141,10 +141,9 @@ Whether you're using QLab or Isadora (or something else), Cohort uses a consiste
 - value1: use the media domain from your Cohort cue (i.e., `0` for sound)
 - value2: use the cue number from your Cohort cue
 - value3: use the cue action from your Cohort cue (i.e., `0` for 'play')
+- trigger the 'transmit' input to fire your cue. You should see some information appear in the cohort-osc-bridge window, confirming success or flagging an error.
 
 A cue triggered this way will play on all connected devices. If you are using groupings in your project to target certain cues to certain devices, you'll need to add a fourth value, and hook up a Trigger Text actor to value4, so Isadora knows the grouping is a 'string' (a bit of text) rather than a number.
-
-- trigger the 'transmit' input to fire your cue. You should see some information appear in the cohort-osc-bridge window, confirming success or flagging an error.
 
 ## ETC Eos consoles
 Cohort light cues (mediaDomain: 4) will be passed along to consoles when using this app in Receive or Two-way mode.
