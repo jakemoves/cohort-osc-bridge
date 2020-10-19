@@ -134,7 +134,7 @@ Whether you're using QLab or Isadora (or something else), Cohort uses a consiste
 - Cohort does not provide any information back to QLab, so you can't monitor Cohort cues within QLab (i.e., you won't see them in the Active Cues list). You may want to keep one device next to your QLab machine, so you can monitor cues on remote devices after triggering them.
 
 ## Isadora setup
-![Example of Isadora OSC Multi Transmit actor configured correctly]()
+![Example of Isadora OSC Multi Transmit actor configured correctly](https://raw.githubusercontent.com/jakemoves/cohort-osc-bridge/main/docs/isadora-screengrab.png)
 - Create an OSC Multi Transmit actor
 - use the IP address and port provided in the cohort-osc-bridge window
 - use the address `/cohort`
