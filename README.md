@@ -7,35 +7,49 @@
 [ETC Eos lighting consoles](https://www.etcconnect.com/workarea/DownloadAsset.aspx?id=10737461372)) can receive OSC messages. This app listens for cues from a Cohort server and passes them to the console you're working with.
 
 ## Getting started
-- download the [latest version of the app](https://cohort.rocks/binaries/cohort-osc-bridge-latest.zip)
-- on your QLab computer, unzip the cohort-osc-bridge app, move to your Applications folder, and run it
+
+### Mac OS
+- download the [latest version of the app](https://cohort.rocks/packages/cohort-osc-bridge-latest.zip)
+- on your computer, unzip the cohort-osc-bridge app, move to your Applications folder, and run it
 - if you get an error or warning message:
   - try right-clicking (or hold command and click) on the app, then clicking 'Open' in the menu that appears, then confirming
   - if that doesn't work, you may need to [adjust your Mac's settings](https://www.imore.com/how-open-apps-anywhere-macos-catalina-and-mojave) to run the app
 
-Or, if you're a developer:
+### Windows
+- download the [latest version of the app](https://cohort.rocks/packages/cohort-osc-bridge-latest-win.zip)
+- unzip and run the application
+- if you get an error or warning message:
+  - try choosing 'Run as Administrator'
+
+### Building from source
+If you're a developer:
 - clone the repository
 - ensure your system is using node 12.19.0 or higher ([nvm](https://github.com/nvm-sh/nvm#installation-and-update) is a great way to switch between node versions)
 - in the cloned folder:
   - `npm install`
   - `node app.js`
 
+## Usage
 ### Start the bridge app
+Use the arrow keys and Enter to make the following selections.
+
 1) choose a bridge mode
   - **broadcast**: trigger cues on mobile devices using QLab or Isadora
   - **receive**: listen for cues from Cohort and pass them to a lighting console
   - **two-way**: both of the above
 2) choose a server mode  
-  - **"Online"**: Your computer and your mobile devices must be connected to the internet (over wifi or cellular data) to receive cues. This mode is the easiest to set up, but depends on that internet connection. Online mode requires you to enter a username and password for the [Cohort Admin website](https://cohort.rocks/admin), as well as asking for an 'occasion id'. For testing purposes, you can use these shared demo credentials:
+  **"Online"**: Your computer and your mobile devices must be connected to the internet (over wifi or cellular data) to receive cues. This mode is the easiest to set up, but depends on that internet connection. Online mode requires you to enter a username and password for the [Cohort Admin website](https://cohort.rocks/admin), as well as asking for an 'occasion id'. For testing purposes, you can use these shared demo credentials:
     - username: demouser
     - password: demodemo
     - occasion id: 9
+    
   When you start working on your own project, you'll want your own account:
     - Register on the [Cohort Admin website](https://cohort.rocks/admin)
     - Create a new event. An event is like a production, or a project.
     - In that event, create a new occasion. An occasion is like a specific performance or rehearsal period.
     - Note the occasion's ID number
-  - **"Offline"**: suitable for use in controlled environments like theatres, where your show computer and mobile devices are connected to a local network (wifi / WLAN) that may or may not be connected to the internet. You will need to run the [cohort-server-offline app](https://cohort.rocks/binaries/cohort-server-offline-latest.zip) on the same computer where you're running this app. Offline mode offers the most control, the fastest turnaround when revising cues and content, and the lowest latency, but is more complicated to set up.
+
+  **"Offline"**: suitable for use in controlled environments like theatres, where your show computer and mobile devices are connected to a local network (wifi / WLAN) that may or may not be connected to the internet. You will need to run the [cohort-server-offline app](https://cohort.rocks/binaries/cohort-server-offline-latest.zip) on the same computer where you're running this app. Offline mode offers the most control, the fastest turnaround when revising cues and content, and the lowest latency, but is more complicated to set up.
 
 #### Broadcast mode
 - enter the username, password, and occasion id 
@@ -51,28 +65,17 @@ Or, if you're a developer:
   - note down the port number or set one if it's blank
 - skip ahead to the instructions for ETC Eos consoles
 
+## Creating a Cohort cue
+Whether you're using QLab or Isadora (or something else), Cohort uses a consistent format for cues:
 
-## QLab
-
-### Create a Network Patch
-- open or create a Workspace in QLab
-- open Workplace Settings (gear icon) > Network
-- in the first empty Patch row, enter the IP address and Port values displayed in the Bridge window under 'Destination':
-
-|          | Name          | Type      | Network     | Destination |          | Passcode |
-| ---------|---------------|-----------|-------------|-------------|----------|--------- |
-| Patch 1: | Cohort Server | _address_ | _automatic_ | [ Host ]    | [ Port ] |          |
-
-- click Done to save your changes and return to the Workspace
-
-### Compose your Cohort cue message
-This takes the format:
 `/cohort [media domain] [cue number] [cue action] [grouping] [cue content]`
 
-- the cue number is set in the Cohort Unity Client app
-- the grouping is optional:
+- cue numbers are defined in the Cohort Unity Client app or the Cohort Web Client
+- `grouping` is optional:
   - if not included, cue will be played by all devices
   - if included, cue will only be played by this grouping
+  - no whitespace / spaces in grouping
+- `cue content` is optional; right now it's only used for text cues, and for light cues aimed at an Eos console. 
 
 | Media Domain | Value |
 |--------------|-------|
@@ -92,9 +95,22 @@ This takes the format:
 | stop / hide / off | 3     | 
 |                           |
 
-- So to cause sound cue 5 to start playing on all remote devices, your message would be `/cohort 0 5 0`
+- So to cause sound cue 5 to start playing on all remote devices, your OSC message would be `/cohort 0 5 0`
 - To stop that cue: `/cohort 0 5 3`
 - To cause devices in grouping 'audience1' to vibrate once: `/cohort 5 0 0 audience1`
+
+## QLab setup
+
+### Create a Network Patch
+- open or create a Workspace in QLab
+- open Workplace Settings (gear icon) > Network
+- in the first empty Patch row, enter the IP address and Port values displayed in the Bridge window under 'Destination':
+
+|          | Name          | Type      | Network     | Destination |          | Passcode |
+| ---------|---------------|-----------|-------------|-------------|----------|--------- |
+| Patch 1: | Cohort Server | _address_ | _automatic_ | [ Host ]    | [ Port ] |          |
+
+- click Done to save your changes and return to the Workspace
 
 ### Create a Network Cue
 - create a new Network Cue (it's the bullseye / target / roundel icon)
@@ -117,9 +133,18 @@ This takes the format:
 ### Caveats
 - Cohort does not provide any information back to QLab, so you can't monitor Cohort cues within QLab (i.e., you won't see them in the Active Cues list). You may want to keep one device next to your QLab machine, so you can monitor cues on remote devices after triggering them.
 
-## Isadora
+## Isadora setup
+![Example of Isadora OSC Multi Transmit actor configured correctly]()
+- Create an OSC Multi Transmit actor
+- use the IP address and port provided in the cohort-osc-bridge window
+- use the address `/cohort`
+- value1: use the media domain from your Cohort cue (i.e., `0` for sound)
+- value2: use the cue number from your Cohort cue
+- value3: use the cue action from your Cohort cue (i.e., `0` for 'play')
 
-- instructions coming soon
+A cue triggered this way will play on all connected devices. If you are using groupings in your project to target certain cues to certain devices, you'll need to add a fourth value, and hook up a Trigger Text actor to value4, so Isadora knows the grouping is a 'string' (a bit of text) rather than a number.
+
+- trigger the 'transmit' input to fire your cue. You should see some information appear in the cohort-osc-bridge window, confirming success or flagging an error.
 
 ## ETC Eos consoles
 Cohort light cues (mediaDomain: 4) will be passed along to consoles when using this app in Receive or Two-way mode.
