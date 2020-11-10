@@ -38,17 +38,19 @@ Use the arrow keys and Enter to make the following selections.
   - **receive**: listen for cues from Cohort and pass them to a lighting console
   - **two-way**: both of the above
 2) choose a server mode  
-  **"Online"**: Your computer and your mobile devices must be connected to the internet (over wifi or cellular data) to receive cues. This mode is the easiest to set up, but depends on that internet connection. Online mode requires you to enter a username and password for the [Cohort Admin website](https://cohort.rocks/admin), as well as asking for an 'occasion id'. For testing purposes, you can use these shared demo credentials:
-    - username: demouser
-    - password: demodemo
-    - occasion id: 9
+
+**"Online"**: Your computer and your mobile devices must be connected to the internet (over wifi or cellular data) to receive cues. This mode is the easiest to set up, but depends on that internet connection. Online mode requires you to enter a username and password for the [Cohort Admin website](https://cohort.rocks/admin), as well as asking for an 'occasion id'. For testing purposes, you can use these shared demo credentials:
+
+- username: demouser
+- password: demodemo
+- occasion id: 9
     
-  When you start working on your own project, you'll want your own account:
-  
-    - Register on the [Cohort Admin website](https://cohort.rocks/admin)
-    - Create a new event. An event is like a production, or a project.
-    - In that event, create a new occasion. An occasion is like a specific performance or rehearsal period.
-    - Note the occasion's ID number
+When you start working on your own project, you'll want your own account:
+
+- Register on the [Cohort Admin website](https://cohort.rocks/admin)
+- Create a new event. An event is like a production, or a project.
+- In that event, create a new occasion. An occasion is like a specific performance or rehearsal period.
+- Note the occasion's ID number
 
   **"Offline"**: suitable for use in controlled environments like theatres, where your show computer and mobile devices are connected to a local network (wifi / WLAN) that may or may not be connected to the internet. You will need to run the [cohort-server-offline app](https://cohort.rocks/binaries/cohort-server-offline-latest.zip) on the same computer where you're running this app. Offline mode offers the most control, the fastest turnaround when revising cues and content, and the lowest latency, but is more complicated to set up.
 
