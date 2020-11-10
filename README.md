@@ -44,6 +44,7 @@ Use the arrow keys and Enter to make the following selections.
     - occasion id: 9
     
   When you start working on your own project, you'll want your own account:
+  
     - Register on the [Cohort Admin website](https://cohort.rocks/admin)
     - Create a new event. An event is like a production, or a project.
     - In that event, create a new occasion. An occasion is like a specific performance or rehearsal period.
@@ -134,7 +135,7 @@ Whether you're using QLab or Isadora (or something else), Cohort uses a consiste
 - Cohort does not provide any information back to QLab, so you can't monitor Cohort cues within QLab (i.e., you won't see them in the Active Cues list). You may want to keep one device next to your QLab machine, so you can monitor cues on remote devices after triggering them.
 
 ## Isadora setup
-![Example of Isadora OSC Multi Transmit actor configured correctly](https://raw.githubusercontent.com/jakemoves/cohort-osc-bridge/main/docs/isadora-screengrab.png)
+![Example of Isadora OSC Multi Transmit actor configured correctly - image by Duncan Appleton](https://raw.githubusercontent.com/jakemoves/cohort-osc-bridge/main/docs/isadora-screengrab.png)
 - Create an OSC Multi Transmit actor
 - use the IP address and port provided in the cohort-osc-bridge window
 - use the address `/cohort`
